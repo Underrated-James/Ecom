@@ -1,0 +1,159 @@
+/* General Dashboard Container */
+.dashboard {
+    padding: 20px;
+    background: linear-gradient(135deg, #FF6B6B 0%, #FF9A8B 50%, #7B4397 100%);
+    min-height: 100vh;
+    animation: fadeIn 1s ease-in-out;
+    display: flex;
+    flex-direction: column;
+  }
+  .dashboard-header {
+    text-align: center;
+    color: beige;
+    margin-bottom: 20px;
+    font-size: 2em; /* Adjust font size as needed */
+  }
+  .search-bar {
+    margin-bottom: 20px; /* Add spacing between the search bar and button */
+  }
+  .product-container {
+    margin-top: 20px;
+  }
+  .add-product-button {
+    display: block; /* Make sure the button takes full width */
+    margin: 10px auto; /* Center the button */
+  }
+  .sidebar {
+    margin-bottom: 20px;
+  }
+  
+  .add-product-btn {
+    background-color: #FF6B6B;
+    border: none;
+    transition: transform 0.3s ease, background-color 0.3s ease;
+    color: #fff;
+  }
+  
+  .add-product-btn:hover {
+    background-color: #FF3E3E;
+    transform: scale(1.05);
+  }
+  
+  /* Product Container Styling */
+  .product-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    padding: 10px;
+    margin-top: 20px;
+  }
+  
+  .product-card {
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background-color: rgba(255, 255, 255, 0.8);
+  }
+  
+  .product-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+  }
+  
+  .product-card-title {
+    font-size: 1.5rem;
+    color: #2F2E41;
+  }
+  
+  .product-card-text {
+    color: #2F2E41;
+    margin-bottom: 15px;
+  }
+  
+  .edit-btn {
+    background-color: #FF6B6B;
+    border: none;
+    margin-right: 10px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .edit-btn:hover {
+    background-color: #FF3E3E;
+  }
+  
+  .delete-btn {
+    background-color: #FF6B6B;
+    border: none;
+    transition: background-color 0.3s ease;
+  }
+  
+  .delete-btn:hover {
+    background-color: #FF3E3E;
+  }
+  
+  /* Search Bar Styling */
+  .search-bar {
+    margin-bottom: 20px;
+  }
+  
+  .search-bar input {
+    border-radius: 20px;
+    padding: 10px;
+    border: 2px solid #FF6B6B;
+    transition: border-color 0.3s ease;
+  }
+  
+  .search-bar input:focus {
+    border-color: #FF3E3E;
+    outline: none;
+  }
+  
+  /* Filter Section */
+  .filter-section {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .filter-section label {
+    color: #2F2E41;
+  }
+  
+  .filter-section select,
+  .filter-section input {
+    border-radius: 20px;
+    padding: 10px;
+    border: 2px solid #FF6B6B;
+  }
+  
+  .filter-section select:focus,
+  .filter-section input:focus {
+    border-color: #FF3E3E;
+    outline: none;
+  }
+  
+  /* Modal Styling */
+  .modal-header {
+    background-color: #FF6B6B;
+    color: white;
+    border-bottom: none;
+  }
+  
+  .modal-title {
+    color: #fff;
+  }
+  
+  .modal-body {
+    background-color: rgba(255, 255, 255, 0.8);
+  }
+  
+  .modal-footer button {
+    background-color: #FF6B6B;
+    border: none;
+  }
+  
+  .modal-footer button:hover {
+    background-color: #FF3E3E;
+  }
+  
