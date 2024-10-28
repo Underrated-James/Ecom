@@ -72,6 +72,11 @@ const Login = () => {
                   Log In
                 </Button>
               </Form>
+              
+              {/* Registration Link */}
+              <div className="mt-3 text-center">
+                <p>Don't have an account? <Button variant="link" onClick={() => navigate('/register')}>Register here</Button></p>
+              </div>
             </Card.Body>
           </Card>
         </Col>

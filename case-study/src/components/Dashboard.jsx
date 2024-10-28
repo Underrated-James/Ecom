@@ -1,34 +1,43 @@
 import React, { useState } from 'react';
-import { Button, Modal, Form, Card, InputGroup } from 'react-bootstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import { Modal, Form, Button, Container, Row, Col } from 'react-bootstrap';
+import AddProductButton from './subcomponents/AddProductButton';
+import SearchBar from './subcomponents/SearchBar';
+import CategoryFilter from './subcomponents/CategoryFilter';
+import PriceSort from './subcomponents/PriceSort';
+import ProductCard from './subcomponents/ProductCard';
 import './Dashboard.css';
+
 const Dashboard = () => {
   const [showModal, setShowModal] = useState(false);
   const [editModal, setEditModal] = useState(false);
-  const [deleteModal, setDeleteModal] = useState(false);
+  const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
+  const [productToDelete, setProductToDelete] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     price: '',
     quantity: '',
     category: '',
-    description: ''
+    description: '',
   });
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentProductIndex, setCurrentProductIndex] = useState(null);
-  
-  // Filter state
-  const [categoryFilter, setCategoryFilter] = useState('');
+  const [selectedCategories, setSelectedCategories] = useState([]);
   const [priceFilter, setPriceFilter] = useState('');
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleAddProduct = () => {
-    setProducts((prev) => [...prev, formData]);
+    const newProduct = {
+      ...formData,
+      price: Number(formData.price),
+      quantity: Number(formData.quantity),
+      id: Date.now(), // Generate unique ID
+    };
+    setProducts(prev => [...prev, newProduct]);
     setFormData({ title: '', price: '', quantity: '', category: '', description: '' });
     setShowModal(false);
   };
@@ -44,78 +53,60 @@ const Dashboard = () => {
     updatedProducts[currentProductIndex] = formData;
     setProducts(updatedProducts);
     setEditModal(false);
-    alert("Product Updated Successfully!"); // Confirmation alert
+    alert("Product Updated Successfully!");
   };
 
   const handleDeleteProduct = (index) => {
-    setCurrentProductIndex(index);
-    setDeleteModal(true);
+    setProductToDelete(index);
+    setConfirmDeleteModal(true);
   };
 
-  const confirmDeleteProduct = () => {
-    const updatedProducts = products.filter((_, i) => i !== currentProductIndex);
+  const handleConfirmDelete = () => {
+    const updatedProducts = products.filter((_, i) => i !== productToDelete);
     setProducts(updatedProducts);
-    setDeleteModal(false);
+    setConfirmDeleteModal(false);
   };
 
-  // Filter and sort logic
-  const filteredProducts = products
-    .filter(product => 
-      product.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      (categoryFilter ? product.category.toLowerCase() === categoryFilter.toLowerCase() : true)
-    )
-    .sort((a, b) => {
-      if (priceFilter === 'low-to-high') return a.price - b.price;
-      if (priceFilter === 'high-to-low') return b.price - a.price;
-      return 0;
-    });
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = product.title.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(product.category);
+    return matchesSearch && matchesCategory;
+  });
+
+  const sortedProducts = filteredProducts.sort((a, b) => {
+    if (priceFilter === 'low-to-high') return a.price - b.price;
+    if (priceFilter === 'high-to-low') return b.price - a.price;
+    return 0;
+  });
+
+  const allCategories = [...new Set(products.map(p => p.category))];
+
+  const toggleCategory = (category, isChecked) => {
+    if (isChecked) {
+      setSelectedCategories(prev => [...prev, category]);
+    } else {
+      setSelectedCategories(prev => prev.filter(cat => cat !== category));
+    }
+  };
 
   return (
-    <div className="dashboard">
-      <h1 className="dashboard-header">MyStore | Shopping Cart</h1> {/* Header added */}
+    <Container>
+      <AddProductButton onClick={() => setShowModal(true)} />
+      <SearchBar searchTerm={searchTerm} onSearchChange={(e) => setSearchTerm(e.target.value)} />
+      <CategoryFilter categories={allCategories} selectedCategories={selectedCategories} onCategoryChange={toggleCategory} />
+      <PriceSort value={priceFilter} onChange={(e) => setPriceFilter(e.target.value)} />
 
-      {/* Add Product Button at the top */}
-      <Button variant="success" onClick={() => setShowModal(true)} className="add-product-button">Add Product</Button>
-
-      {/* Search Bar */}
-      <div className="search-bar">
-        <InputGroup className="mb-3">
-          <InputGroup.Text>
-            <FontAwesomeIcon icon={faSearch} />
-          </InputGroup.Text>
-          <Form.Control
-            placeholder="Search products"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ height: '50px' }} // Adjusted height
-          />
-        </InputGroup>
-      </div>
-
-      {/* Filter Section */}
-      <div className="filter-section">
-        <Form.Group controlId="formCategoryFilter">
-          <Form.Label>Filter by Category</Form.Label>
-          <Form.Control
-            type="text"
-            placeholder="Enter category to filter"
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-          />
-        </Form.Group>
-        <Form.Group controlId="formPriceFilter">
-          <Form.Label>Sort by Price</Form.Label>
-          <Form.Control
-            as="select"
-            value={priceFilter}
-            onChange={(e) => setPriceFilter(e.target.value)}
-          >
-            <option value="">Select</option>
-            <option value="low-to-high">Low to High</option>
-            <option value="high-to-low">High to Low</option>
-          </Form.Control>
-        </Form.Group>
-      </div>
+      <Row>
+        {sortedProducts.map((product, index) => (
+          <Col md={4} key={index} className="d-flex justify-content-center">
+            <ProductCard
+              product={product}
+              onEdit={() => handleEditProduct(index)}
+              onDelete={() => handleDeleteProduct(index)}
+            />
+          </Col>
+        ))}
+      </Row>
 
       {/* Add Product Modal */}
       <Modal show={showModal} onHide={() => setShowModal(false)}>
@@ -124,68 +115,32 @@ const Dashboard = () => {
         </Modal.Header>
         <Modal.Body>
           <Form>
-            {/* Form fields */}
-            <Form.Group controlId="formTitle">
+            <Form.Group>
               <Form.Label>Title</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter product title"
-                name="title"
-                value={formData.title}
-                onChange={handleInputChange}
-                required
-              />
+              <Form.Control type="text" name="title" value={formData.title} onChange={handleInputChange} />
             </Form.Group>
-            <Form.Group controlId="formPrice">
+            <Form.Group>
               <Form.Label>Price</Form.Label>
-              <Form.Control
-                type="number"
-                placeholder="Enter product price"
-                name="price"
-                value={formData.price}
-                onChange={handleInputChange}
-                required
-              />
+              <Form.Control type="number" name="price" value={formData.price} onChange={handleInputChange} />
             </Form.Group>
-            <Form.Group controlId="formQuantity">
+            <Form.Group>
               <Form.Label>Quantity</Form.Label>
-              <Form.Control
-                type="number"
-                placeholder="Enter quantity"
-                name="quantity"
-                value={formData.quantity}
-                onChange={handleInputChange}
-                required
-              />
+              <Form.Control type="number" name="quantity" value={formData.quantity} onChange={handleInputChange} />
             </Form.Group>
-            <Form.Group controlId="formCategory">
+            <Form.Group>
               <Form.Label>Category</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter product category"
-                name="category"
-                value={formData.category}
-                onChange={handleInputChange}
-                required
-              />
+              <Form.Control type="text" name="category" value={formData.category} onChange={handleInputChange} />
             </Form.Group>
-            <Form.Group controlId="formDescription">
+            <Form.Group>
               <Form.Label>Description</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={3}
-                placeholder="Enter product description"
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                required
-              />
+              <Form.Control as="textarea" name="description" value={formData.description} onChange={handleInputChange} />
             </Form.Group>
-            <Button variant="success" onClick={handleAddProduct}>
-              Add Product
-            </Button>
           </Form>
         </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowModal(false)}>Close</Button>
+          <Button variant="primary" onClick={handleAddProduct}>Add Product</Button>
+        </Modal.Footer>
       </Modal>
 
       {/* Edit Product Modal */}
@@ -195,107 +150,49 @@ const Dashboard = () => {
         </Modal.Header>
         <Modal.Body>
           <Form>
-            {/* Form fields */}
-            <Form.Group controlId="formTitle">
+            <Form.Group>
               <Form.Label>Title</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter product title"
-                name="title"
-                value={formData.title}
-                onChange={handleInputChange}
-                required
-              />
+              <Form.Control type="text" name="title" value={formData.title} onChange={handleInputChange} />
             </Form.Group>
-            <Form.Group controlId="formPrice">
+            <Form.Group>
               <Form.Label>Price</Form.Label>
-              <Form.Control
-                type="number"
-                placeholder="Enter product price"
-                name="price"
-                value={formData.price}
-                onChange={handleInputChange}
-                required
-              />
+              <Form.Control type="number" name="price" value={formData.price} onChange={handleInputChange} />
             </Form.Group>
-            <Form.Group controlId="formQuantity">
+            <Form.Group>
               <Form.Label>Quantity</Form.Label>
-              <Form.Control
-                type="number"
-                placeholder="Enter quantity"
-                name="quantity"
-                value={formData.quantity}
-                onChange={handleInputChange}
-                required
-              />
+              <Form.Control type="number" name="quantity" value={formData.quantity} onChange={handleInputChange} />
             </Form.Group>
-            <Form.Group controlId="formCategory">
+            <Form.Group>
               <Form.Label>Category</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter product category"
-                name="category"
-                value={formData.category}
-                onChange={handleInputChange}
-                required
-              />
+              <Form.Control type="text" name="category" value={formData.category} onChange={handleInputChange} />
             </Form.Group>
-            <Form.Group controlId="formDescription">
+            <Form.Group>
               <Form.Label>Description</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={3}
-                placeholder="Enter product description"
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                required
-              />
+              <Form.Control as="textarea" name="description" value={formData.description} onChange={handleInputChange} />
             </Form.Group>
-      <Button variant="primary" onClick={handleUpdateProduct}>
-              Update Product
-      </Button>
           </Form>
         </Modal.Body>
-      </Modal>
-
-      {/* Delete Confirmation Modal */}
-      <Modal show={deleteModal} onHide={() => setDeleteModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Confirm Deletion</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p>Are you sure you want to delete this product?</p>
-        </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setDeleteModal(false)}>
-            No
-          </Button>
-          <Button variant="danger" onClick={confirmDeleteProduct}>
-            Yes, Delete
-          </Button>
+          <Button variant="secondary" onClick={() => setEditModal(false)}>Close</Button>
+          <Button variant="primary" onClick={handleUpdateProduct}>Update Product</Button>
         </Modal.Footer>
       </Modal>
 
-      {/* Product Cards Container */}
-      <div className="product-container" style={{ overflowY: 'scroll', maxHeight: '400px' }}>
-        {filteredProducts.map((product, index) => (
-          <Card key={index} className="product-card">
-            <Card.Body>
-      <Card.Title>{product.title}</Card.Title>
-      <Card.Text>
-                Price: ${product.price}<br />
-                Quantity: {product.quantity}<br />
-                Category: {product.category}<br />
-                Description: {product.description}
-     </Card.Text>
-              <Button variant="warning" onClick={() => handleEditProduct(index)}>Edit</Button>
-              <Button variant="danger" onClick={() => handleDeleteProduct(index)}>Delete</Button>
-    </Card.Body>
-          </Card>
-        ))}
-      </div>
-    </div>
+      {/* Delete Confirmation Modal */}
+      <Modal show={confirmDeleteModal} onHide={() => setConfirmDeleteModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm Deletion</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>Are you sure you want to delete this product?</Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setConfirmDeleteModal(false)}>Cancel</Button>
+          <Button variant="danger" onClick={() => {
+            handleConfirmDelete();
+            setConfirmDeleteModal(false);
+          }}>Delete</Button>
+        </Modal.Footer>
+      </Modal>
+    </Container>
   );
 };
 
